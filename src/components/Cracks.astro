@@ -1,0 +1,26 @@
+---
+// Decorative hairline cracks.
+// Each crack is its own SVG pinned to an edge, so nothing stretches with the slab size.
+---
+<div class="cracks" aria-hidden="true">
+  <!-- top-right: branching crack -->
+  <svg class="crack-tr" style="right:0;top:0" width="190" height="170" viewBox="0 0 190 170">
+    <path class="crack-lip" d="M190 30 L150 38 L132 32 L112 52 L96 50 L84 78 L70 88 L62 120 L48 140" />
+    <path class="crack" d="M190 30 L150 38 L132 32 L112 52 L96 50 L84 78 L70 88 L62 120 L48 140" />
+    <path class="crack" d="M132 32 L126 8 L134 0 M112 52 L120 70 L150 74 L162 90 M70 88 L40 92 L28 86" />
+  </svg>
+  <!-- left edge -->
+  <svg class="hidden sm:block" style="left:0;top:38%" width="80" height="90" viewBox="0 0 80 90">
+    <path class="crack-lip" d="M0 10 L22 18 L30 44 L52 52 L58 80" />
+    <path class="crack" d="M0 10 L22 18 L30 44 L52 52 L58 80 M30 44 L12 60" />
+  </svg>
+  <!-- bottom -->
+  <svg style="left:42%;bottom:0" width="120" height="70" viewBox="0 0 120 70">
+    <path class="crack-lip" d="M10 70 L22 48 L18 34 L40 22 L46 6 M40 22 L70 30 L84 18 L110 24" />
+    <path class="crack" d="M10 70 L22 48 L18 34 L40 22 L46 6 M40 22 L70 30 L84 18 L110 24" />
+  </svg>
+  <!-- small hairline mid-right, desktop only -->
+  <svg class="hidden md:block" style="right:22%;top:58%" width="70" height="20" viewBox="0 0 70 20">
+    <path class="crack" d="M0 8 L18 14 L30 6 L48 12 L70 4" />
+  </svg>
+</div>

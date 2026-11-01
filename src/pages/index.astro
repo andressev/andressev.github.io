@@ -1,0 +1,168 @@
+---
+import '../styles/global.css';
+import ProjectRow from '../components/ProjectRow.astro';
+import { tabs, projects } from '../data/projects';
+const base = import.meta.env.BASE_URL;
+const defaultTab = 'academic';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Andres Sevilla</title>
+    <meta name="description" content="Andres Sevilla — applied mathematician and real-time developer: simulations, scientific visualization and games." />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
+    <link rel="icon" href={`${base}favicon.ico`} sizes="32x32" />
+    <link rel="apple-touch-icon" href={`${base}apple-touch-icon.png`} />
+    <link rel="preload" as="image" href={`${base}media/cement.jpg`} />
+    <style define:vars={{ cementUrl: `url(${base}media/cement.jpg)` }}>
+      :root { --cement-url: var(--cementUrl); }
+    </style>
+  </head>
+  <body>
+    <div class="cement-bg" aria-hidden="true"></div>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+      <filter id="engrave" x="-5%" y="-10%" width="110%" height="125%" color-interpolation-filters="sRGB">
+        <!-- inner shadow: glyph minus a shifted, blurred copy = top-left inner wall -->
+        <feOffset in="SourceAlpha" dx="2" dy="3" result="off" />
+        <feGaussianBlur in="off" stdDeviation="1.6" result="blur" />
+        <feComposite in="SourceAlpha" in2="blur" operator="out" result="wall" />
+        <feFlood flood-color="#1e1b18" flood-opacity="0.8" />
+        <feComposite in2="wall" operator="in" result="shadow" />
+        <!-- lit lip: thin sliver just outside the lower-right edge -->
+        <feOffset in="SourceAlpha" dx="1" dy="1.5" result="o2" />
+        <feComposite in="o2" in2="SourceAlpha" operator="out" result="lip" />
+        <feFlood flood-color="#ffffff" flood-opacity="0.65" />
+        <feComposite in2="lip" operator="in" result="lipc" />
+        <feMerge>
+          <feMergeNode in="lipc" />
+          <feMergeNode in="SourceGraphic" />
+          <feMergeNode in="shadow" />
+        </feMerge>
+      </filter>
+    </svg>
+
+    <main class="mx-auto max-w-6xl px-[max(10px,env(safe-area-inset-left,0px))] py-3 sm:px-6 sm:py-8">
+      <!-- Header slab -->
+      <header class="slab concrete glass-slab slab-pad" style="--ox:120px;--oy:60px">
+        <div class="relative max-w-3xl">
+          <h1 class="cast text-[clamp(2.1rem,7vw,3.5rem)]">Andres Sevilla</h1>
+          <p class="heading mt-3 text-[1.25rem] sm:text-[1.5rem] text-[var(--ink-soft)]">mathematician &amp; software developer.</p>
+          <p class="mt-6 max-w-xl text-[1.02rem] leading-relaxed text-[var(--ink-soft)]">
+            I like building any type of real time interactive system such as simulations, scientific visualizations and games.
+          </p>
+          <p class="mt-4 max-w-xl text-[1.02rem] leading-relaxed text-[var(--ink-soft)]">
+            I studied Applied Mathematics at ITAM in Mexico City, then worked for two years as a game developer at TagWizz in Mexico. For now, I create architectural walkthroughs and animations for advertising.
+          </p>
+          <p class="eyebrow mt-4 normal-case tracking-[0.08em]">C# · Unity · HLSL · C++ · OpenGL · GLSL · TouchDesigner · Python · Scientific Computing.</p>
+          <a class="btn concrete mt-6" href="mailto:andressevilla81@gmail.com">andressevilla81@gmail.com</a>
+          <p class="mt-5 text-[1.02rem] text-[var(--ink-soft)]">Check out my work!</p>
+        </div>
+      </header>
+
+      <!-- Folder tabs + tinted slabs -->
+      <div id="work" class="mt-6 sm:mt-8" data-cat={defaultTab}>
+        <div role="tablist" aria-label="Project categories" class="tabs">
+          {tabs.map((t, i) => (
+            <button
+              role="tab"
+              id={`tab-${t.id}`}
+              aria-controls={`panel-${t.id}`}
+              aria-selected={t.id === defaultTab ? 'true' : 'false'}
+              tabindex={t.id === defaultTab ? 0 : -1}
+              data-tab={t.id}
+              data-cat={t.id}
+              style={`--ox:${i * 90}px;--oy:${i * 50}px`}
+              class="tab concrete glass-tab"
+            >{t.label}</button>
+          ))}
+        </div>
+
+        {tabs.map((t) => (
+          <section
+            role="tabpanel"
+            id={`panel-${t.id}`}
+            aria-labelledby={`tab-${t.id}`}
+            data-cat={t.id}
+            hidden={t.id !== defaultTab}
+            class="flex flex-col gap-5 sm:gap-6"
+          >
+            {projects.filter((p) => p.tab === t.id).map((p, i) => (
+              <ProjectRow project={p} first={i === 0} index={i} attached={i === 0} />
+            ))}
+          </section>
+        ))}
+      </div>
+
+      <footer class="mt-8 pb-6 text-center">
+        <p class="eyebrow">© 2026 Andres Sevilla</p>
+      </footer>
+    </main>
+
+    <script>
+      import { renderConcrete } from '../scripts/concrete';
+      import { startVectorField } from '../scripts/vectorField';
+      startVectorField(document.querySelector('.cement-bg') as HTMLElement);
+      // slabs get the full texture; the wall gets a second pour with shallower holes
+      const root = document.documentElement.style;
+      // set to true to bring the concrete texture back
+      const CONCRETE_TEXTURE = false;
+      if (CONCRETE_TEXTURE) {
+      renderConcrete(1024).then((u) => u && root.setProperty('--noise-url', `url(${u})`));
+      renderConcrete(1024, { seed: 0.611, scale: 0.8, mottle: 0.4, grain: 0.3, poreDensity: 0.04, poreSize: 0.6, stain: 0, crack: 0 }).then((u) => u && root.setProperty('--wall-noise-url', `url(${u})`));
+      }
+
+      const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+      const ids = tabs.map((t) => t.dataset.tab!);
+
+      // Videos only load and play while visible (saves mobile data/battery)
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          const v = e.target as HTMLVideoElement;
+          if (e.isIntersecting) {
+            if (!v.src && v.dataset.src) v.src = v.dataset.src;
+            v.play().catch(() => {});
+          } else v.pause();
+        }
+      }, { rootMargin: '150px' });
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reduced) document.querySelectorAll('video[data-src]').forEach((v) => io.observe(v));
+
+      function select(id: string, focus = false) {
+        if (!ids.includes(id)) id = ids[0];
+        for (const t of tabs) {
+          const on = t.dataset.tab === id;
+          t.setAttribute('aria-selected', String(on));
+          t.tabIndex = on ? 0 : -1;
+          document.getElementById(`panel-${t.dataset.tab}`)!.hidden = !on;
+          if (on && focus) t.focus();
+        }
+        history.replaceState(null, '', `#${id}`);
+      }
+
+      tabs.forEach((t, i) => {
+        t.addEventListener('click', () => select(t.dataset.tab!));
+        t.addEventListener('keydown', (e) => {
+          const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+          if (d) select(ids[(i + d + ids.length) % ids.length], true);
+        });
+      });
+
+      // "Learn more" panels
+      document.querySelectorAll<HTMLButtonElement>('.more-toggle').forEach((b) => {
+        const panel = document.getElementById(b.getAttribute('aria-controls')!)!;
+        b.addEventListener('click', () => {
+          const open = b.getAttribute('aria-expanded') !== 'true';
+          b.setAttribute('aria-expanded', String(open));
+          panel.hidden = !open;
+          if (open) panel.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
+        });
+      });
+
+      const fromHash = location.hash.slice(1);
+      if (fromHash && ids.includes(fromHash)) select(fromHash);
+    </script>
+  </body>
+</html>

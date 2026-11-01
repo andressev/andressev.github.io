@@ -1,0 +1,472 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/archivo/wdth.css';
+@import '@fontsource/archivo/400.css';
+@import '@fontsource/archivo/600.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/700.css';
+
+/* Familjen Grotesk (project titles), self-hosted from src/assets/fonts */
+@font-face {
+  font-family: 'Familjen Grotesk';
+  font-weight: 600;
+  font-display: swap;
+  src: url('../assets/fonts/familjen-grotesk-latin-600-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Familjen Grotesk';
+  font-weight: 600;
+  font-display: swap;
+  src: url('../assets/fonts/familjen-grotesk-latin-ext-600-normal.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@theme {
+  --font-sans: 'Archivo', system-ui, sans-serif;
+  --font-wide: 'Archivo Variable', 'Archivo', 'Arial Black', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-title: 'Familjen Grotesk', 'Archivo', system-ui, sans-serif;
+}
+
+/* Layout: dark poured wall; content lives on bolted slabs stacked down the wall.
+   Every surface = its own color + one shader-made concrete tile laid over it (overlay blend). */
+:root {
+  --wall: #ffffff;
+  --slab: #bebbb6;            /* header + default slab */
+  --ink: #1f1e1c;
+  --ink-soft: #383633;
+  --edge-hi: rgb(255 255 255 / 0.55);
+  /* category pours */
+  --c-academic:  #b3c6d6;
+  --c-gamedev:   #d8b08e;
+  --c-publicity: #b7a3d6;
+  --grain-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.5' numOctaves='3' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .19 0 0 0 0 .18 0 0 0 -7 3.05'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --blotch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='3' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .33 0 0 0 0 .31 0 0 0 .55 -.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23b)'/%3E%3C/svg%3E");
+  /* replaced at load by the WebGL concrete tile (src/scripts/concrete.ts) */
+  --noise-url: none;
+  --wall-noise-url: none;
+  --noise-size: 512px;
+  color-scheme: light;
+}
+
+html { background: var(--wall); -webkit-text-size-adjust: 100%; }
+body { color: var(--ink); font-family: var(--font-sans); min-height: 100dvh; background: var(--wall); }
+/* page content stacks above the fixed wall layer */
+body > main { position: relative; z-index: 1; }
+
+/* the wall: darker, coarser tile (same texture scaled up) over the cement photo */
+.cement-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  /* clean wall: flat tone + the shader tile only (no photo, no dark wash) */
+  background-color: var(--wall);
+  background-image: var(--wall-noise-url);
+  background-size: 900px 900px;
+  background-position: 37px 91px;
+  background-blend-mode: overlay;
+}
+
+/* ── Shared concrete surface ─────────────────────────── */
+.concrete {
+  background-color: var(--slab);
+  background-image:
+    linear-gradient(rgb(var(--shade-rgb, 0 0 0) / var(--shade, 0)), rgb(var(--shade-rgb, 0 0 0) / var(--shade, 0))),
+    linear-gradient(160deg, rgb(255 255 255 / 0.10), rgb(0 0 0 / 0.07)),
+    var(--noise-url);
+  background-size: auto, auto, var(--noise-size) var(--noise-size);
+  background-position: 0 0, 0 0, var(--ox, 0) var(--oy, 0);
+  background-blend-mode: normal, normal, overlay;
+}
+
+/* category colors: tabs, slabs, buttons and frames pick up --slab from here */
+[data-cat='academic']  { --slab: var(--c-academic); }
+[data-cat='gamedev']   { --slab: var(--c-gamedev); }
+[data-cat='publicity'] { --slab: var(--c-publicity); }
+/* alternating pours inside a category */
+.tone-a { --shade-rgb: 255 255 255; --shade: 0.07; }
+.tone-b { --shade-rgb: 40 30 20;    --shade: 0.07; }
+.frame, .btn { --shade: 0; }
+
+/* ── Bolted slab, cast out of the wall ─────────────────── */
+/* the slab face carries a chamfered top-left edge; ::before is the side of the block
+   (same concrete, in shadow) showing below it, plus contact shadow on the wall;
+   ::after holds the four steel bolts */
+:root { --bolt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E %3Cdefs%3E %3CradialGradient id='w' cx='38%' cy='34%' r='70%'%3E%3Cstop offset='0' stop-color='%23e2dfda'/%3E%3Cstop offset='.55' stop-color='%239a968f'/%3E%3Cstop offset='1' stop-color='%234d4945'/%3E%3C/radialGradient%3E %3CradialGradient id='h' cx='36%' cy='30%' r='75%'%3E%3Cstop offset='0' stop-color='%23fbfaf8'/%3E%3Cstop offset='.35' stop-color='%23bcb8b2'/%3E%3Cstop offset='.8' stop-color='%236a6661'/%3E%3Cstop offset='1' stop-color='%233f3c39'/%3E%3C/radialGradient%3E %3ClinearGradient id='s' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231d1b1a'/%3E%3Cstop offset='1' stop-color='%234a4642'/%3E%3C/linearGradient%3E %3Cfilter id='b' x='-30%' y='-30%' width='160%' height='160%'%3E%3CfeGaussianBlur stdDeviation='1.1'/%3E%3C/filter%3E %3C/defs%3E %3Ccircle cx='14' cy='14' r='12.6' fill='%23000' opacity='.18'/%3E %3Ccircle cx='14' cy='14' r='12.6' fill='none' stroke='%23fff' stroke-opacity='.45' stroke-width='.7' transform='translate(.5 .6)'/%3E %3Ccircle cx='15.3' cy='15.8' r='11' fill='%23000' opacity='.45' filter='url(%23b)'/%3E %3Ccircle cx='14' cy='14' r='11' fill='url(%23w)'/%3E %3Ccircle cx='14' cy='14' r='10.6' fill='none' stroke='%23fff' stroke-opacity='.35' stroke-width='.5'/%3E %3Ccircle cx='14.6' cy='15' r='7.4' fill='%23000' opacity='.4' filter='url(%23b)'/%3E %3Ccircle cx='14' cy='14' r='7.4' fill='url(%23h)'/%3E %3Cpolygon points='17.2,14 15.6,16.77 12.4,16.77 10.8,14 12.4,11.23 15.6,11.23' fill='url(%23s)'/%3E %3Cpolygon points='17.2,14 15.6,16.77 12.4,16.77' fill='none' stroke='%23fff' stroke-opacity='.4' stroke-width='.5'/%3E %3Cellipse cx='11.2' cy='10.6' rx='2.2' ry='1.3' fill='%23fff' opacity='.75' transform='rotate(-35 11.2 10.6)'/%3E %3C/svg%3E"); --depth: 9px; }
+.slab {
+  position: relative;
+  border-radius: 4px;
+  box-shadow:
+    inset 0 2px 0 rgb(255 255 255 / 0.6),
+    inset 2px 0 0 rgb(255 255 255 / 0.35),
+    inset 0 5px 6px -3px rgb(255 255 255 / 0.25),
+    inset 0 -2px 0 rgb(0 0 0 / 0.16),
+    inset -2px 0 0 rgb(0 0 0 / 0.1);
+}
+.slab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  transform: translateY(var(--depth));
+  background-color: color-mix(in srgb, var(--slab) 58%, #2f2b28);
+  background-image:
+    linear-gradient(to bottom, transparent calc(100% - var(--depth) - 2px), rgb(0 0 0 / 0.22)),
+    var(--noise-url);
+  background-size: auto, var(--noise-size) var(--noise-size);
+  background-position: 0 0, var(--ox, 0) var(--oy, 0);
+  background-blend-mode: normal, overlay;
+  box-shadow:
+    0 1px 0 rgb(20 18 16 / 0.55),
+    0 3px 5px rgb(20 18 16 / 0.45),
+    0 14px 24px -6px rgb(20 18 16 / 0.4),
+    -1px 0 2px rgb(20 18 16 / 0.25),
+    1px 0 2px rgb(20 18 16 / 0.25);
+}
+.slab::after {
+  display: none; /* bolts off: delete this line to bring them back */
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  --s: 24px;
+  --m: 12px;
+  background:
+    var(--bolt) left var(--m) top var(--m) / var(--s) var(--s) no-repeat,
+    var(--bolt) right var(--m) top var(--m) / var(--s) var(--s) no-repeat,
+    var(--bolt) left var(--m) bottom var(--m) / var(--s) var(--s) no-repeat,
+    var(--bolt) right var(--m) bottom var(--m) / var(--s) var(--s) no-repeat;
+}
+@media (max-width: 640px) { .slab::after { --s: 20px; --m: 9px; } :root { --depth: 7px; } }
+.slab-pad {
+  padding-block: clamp(2.25rem, 6vw, 4.5rem);
+  padding-inline: clamp(1.5rem, 5vw, 3.5rem);
+}
+
+/* ── Cast lettering ──────────────────────────────────── */
+.cast {
+  /* name: same face as the project titles (Familjen Grotesk), still carved via #engrave */
+  font-family: var(--font-title);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1;
+  color: color-mix(in srgb, var(--slab) 72%, #3a3632);
+  filter: url(#engrave);
+}
+.heading {
+  font-family: var(--font-title);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* ── Folder tabs ─────────────────────────────────────── */
+.tabs { display: flex; align-items: flex-end; gap: 8px; }
+.tab {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 0.7rem 1.1rem;
+  border-radius: 3px;
+  box-shadow:
+    inset 2px 2px 0 var(--edge-hi),
+    inset -2px -2px 0 rgb(0 0 0 / 0.14),
+    0 4px 0 rgb(55 51 47 / 0.55),
+    0 7px 10px rgb(20 18 16 / 0.3);
+  transition: transform 140ms cubic-bezier(.3,.7,.4,1.2);
+  margin-bottom: 10px;
+}
+.tab:hover { transform: translateY(-2px); }
+.tab:active { transform: translateY(1px); }
+.tab:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.tab[aria-selected='true'] {
+  margin-bottom: 0;
+  padding-block: 1rem 1.2rem;
+  padding-inline: 1.6rem;
+  border-radius: 3px 3px 0 0;
+  box-shadow: inset 2px 2px 0 var(--edge-hi), inset -2px 0 0 rgb(0 0 0 / 0.14);
+  transform: none;
+  z-index: 1;
+  position: relative;
+  --shade-rgb: 255 255 255; --shade: 0.07; /* matches the first slab (tone-a) */
+}
+/* small phones: keep every label on one line so the tab row stays even */
+.tab { white-space: nowrap; }
+@media (max-width: 400px) {
+  .tab { letter-spacing: 0.08em; padding-inline: 0.75rem; }
+  .tab[aria-selected='true'] { padding-inline: 1rem; }
+}
+.tab[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  left: 2px; right: 2px; bottom: -3px; height: 4px;
+  background: inherit;
+  background-blend-mode: inherit;
+}
+
+/* ── Raised button ───────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+  padding: 0.75rem 1rem;
+  border-radius: 2px;
+  background-color: color-mix(in srgb, var(--slab) 60%, #f4f2ee);
+  box-shadow:
+    inset 2px 2px 0 rgb(255 255 255 / 0.7),
+    inset -2px -2px 0 rgb(0 0 0 / 0.12),
+    3px 4px 0 rgb(55 51 47 / 0.45),
+    4px 6px 8px rgb(20 18 16 / 0.25);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.btn:hover { transform: translate(-1px, -1px); }
+.btn:active {
+  transform: translate(2px, 3px);
+  box-shadow: inset 2px 2px 3px rgb(30 27 24 / 0.35), 1px 1px 0 rgb(55 51 47 / 0.45);
+}
+.btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+/* ── Frame: raised border, recessed well, media sunk inside ── */
+.frame {
+  padding: clamp(6px, 1.08vw, 9.6px);
+  border-radius: 3px;
+  background-color: color-mix(in srgb, var(--slab) 78%, #f4f2ee);
+  box-shadow:
+    inset 2px 2px 0 rgb(255 255 255 / 0.6),
+    inset -2px -2px 0 rgb(0 0 0 / 0.15),
+    5px 7px 0 rgb(55 51 47 / 0.35),
+    6px 10px 14px rgb(20 18 16 / 0.3);
+}
+.well {
+  position: relative;
+  overflow: hidden;
+  background: #232220;
+  aspect-ratio: 16 / 10;
+  box-shadow: -2px -2px 0 rgb(0 0 0 / 0.35), 2px 2px 0 rgb(255 255 255 / 0.45);
+}
+.well > img,
+.well > video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.well::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow:
+    inset 7px 8px 0 rgb(0 0 0 / 0.45),
+    inset 9px 11px 14px rgb(0 0 0 / 0.45);
+}
+
+/* ── Cracks ──────────────────────────────────────────── */
+.cracks { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.cracks svg { position: absolute; overflow: visible; }
+.crack-tr { transform-origin: top right; transform: scale(.62); }
+@media (min-width: 768px) { .crack-tr { transform: scale(1.3); } }
+.crack { fill: none; stroke: rgb(40 36 32 / 0.7); stroke-width: 1.3; stroke-linejoin: bevel; }
+.crack-lip { fill: none; stroke: rgb(255 255 255 / 0.5); stroke-width: 1; transform: translate(1px, 1.2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tab, .btn { transition: none; }
+}
+
+/* ── Intro block as glass ────────────────────────────── */
+/* same block, but the face is translucent and frosts the flow behind it.
+   The side face shrinks to a thin strip under the bottom edge, so it doesn't
+   show through the glass. */
+.slab.glass-slab {
+  /* tint = the block's own color (grey intro, or its category) at low opacity */
+  background-color: color-mix(in srgb, var(--slab) var(--glass-a, 16%), transparent);
+  background-image: linear-gradient(135deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0.04) 45%, rgb(255 255 255 / 0) 60%, rgb(255 255 255 / 0.08));
+  -webkit-backdrop-filter: blur(3px) saturate(120%);
+  backdrop-filter: blur(3px) saturate(120%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.85),
+    inset 1px 0 0 rgb(255 255 255 / 0.5),
+    inset 0 -1px 0 rgb(0 0 0 / 0.08),
+    inset -1px 0 0 rgb(0 0 0 / 0.05),
+    0 18px 40px -14px rgb(30 30 40 / 0.35);
+  border: 1px solid rgb(255 255 255 / 0.45);
+}
+.slab.glass-slab::before {
+  inset: auto 0 calc(-1 * var(--depth)) 0;
+  height: var(--depth);
+  transform: none;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--slab) 55%, rgb(0 0 0 / 0.45)),
+    color-mix(in srgb, var(--slab) 40%, rgb(0 0 0 / 0.35)));
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 12px -4px rgb(30 30 40 / 0.25);
+}
+
+/* project blocks: same glass, a stronger tint so each category keeps its color */
+[data-cat] .slab.glass-slab { --glass-a: 52%; }
+
+/* tabs in glass to match their blocks */
+.tab.glass-tab {
+  background-color: color-mix(in srgb, var(--slab) 70%, transparent);
+  background-image: linear-gradient(135deg, rgb(255 255 255 / 0.3), rgb(255 255 255 / 0) 60%);
+  -webkit-backdrop-filter: blur(3px) saturate(120%);
+  backdrop-filter: blur(3px) saturate(120%);
+  border: 1px solid rgb(255 255 255 / 0.5);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.8), 0 8px 16px -8px rgb(30 30 40 / 0.35);
+}
+.tab.glass-tab[aria-selected='true'] {
+  background-color: color-mix(in srgb, var(--slab) 52%, transparent);
+  border-bottom-color: transparent;
+  margin-bottom: -1px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.85);
+}
+.tab.glass-tab[aria-selected='true']::after { display: none; }
+
+/* ── Recorded talk: small thumbnail link ─────────────── */
+.talk {
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  width: fit-content;
+  max-width: 100%;
+  color: var(--ink);
+  border-radius: 4px;
+}
+.talk:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+.talk-thumb {
+  position: relative;
+  flex: none;
+  width: 9.5rem;
+  aspect-ratio: 16 / 9;
+  border-radius: 3px;
+  overflow: hidden;
+  background: #232220;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--slab) 88%, #fff), 3px 5px 0 4px rgb(55 51 47 / 0.3);
+  transition: transform 160ms cubic-bezier(.3,.7,.4,1.2);
+}
+.talk-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.talk-play {
+  position: absolute; inset: 0; margin: auto;
+  width: 2.2rem; height: 2.2rem; border-radius: 50%;
+  background: rgb(15 15 15 / 0.72);
+}
+.talk-play::after {
+  content: ''; position: absolute; left: 54%; top: 50%;
+  transform: translate(-50%, -50%);
+  border-left: 0.7rem solid #fff; border-top: 0.45rem solid transparent; border-bottom: 0.45rem solid transparent;
+}
+.talk:hover .talk-thumb { transform: translateY(-2px); }
+.talk-text { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
+.talk-label { font-family: var(--font-title); font-weight: 600; font-size: 1.05rem; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+.talk:hover .talk-label { text-decoration-thickness: 2px; }
+
+/* ── Learn more ──────────────────────────────────────── */
+.more-toggle .more-open { display: none; }
+.more-toggle[aria-expanded='true'] .more-open { display: inline; }
+.more-toggle[aria-expanded='true'] .more-closed { display: none; }
+.more-arrow { display: inline-block; transition: transform 200ms ease; }
+.more-toggle[aria-expanded='true'] .more-arrow { transform: rotate(180deg); }
+
+.more-panel {
+  margin-top: clamp(1.75rem, 4vw, 2.75rem);
+  padding-top: clamp(1.5rem, 3.5vw, 2.25rem);
+  border-top: 1px solid rgb(40 36 32 / 0.18);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5);
+}
+.more-text { max-width: 68ch; display: grid; gap: 1rem; color: var(--ink-soft); line-height: 1.7; }
+/* screenshot shown whole (no crop), between the intro and the rest of the text */
+.more-figure { margin: clamp(1.5rem, 3.5vw, 2.25rem) 0 0; max-width: 46rem; }
+.more-figure .well { aspect-ratio: auto; }
+.more-figure .well > img { height: auto; object-fit: contain; }
+.more-after { margin-top: clamp(1.5rem, 3.5vw, 2.25rem); }
+.more-list { display: grid; gap: 0.85rem; }
+.more-list dt { font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; color: var(--ink); }
+.more-list dd { margin: 0.15rem 0 0; }
+.more-gallery {
+  list-style: none; padding: 0;
+  margin-top: clamp(1.5rem, 3.5vw, 2.25rem);
+  display: grid; gap: clamp(1rem, 2.5vw, 1.75rem);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+}
+.more-gallery .frame { transition: transform 160ms cubic-bezier(.3,.7,.4,1.2); }
+.more-gallery a:hover { transform: translateY(-2px); }
+.more-gallery a:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+.more-caption { margin-top: 0.7rem; font-size: 0.85rem; line-height: 1.5; color: var(--ink-soft); }
+@media (prefers-reduced-motion: reduce) { .more-arrow, .talk-thumb, .more-gallery .frame { transition: none; } }
+
+/* featured block: text | image on top, talk + Learn more in a row underneath */
+.featured-well { aspect-ratio: 16 / 10; }
+.featured-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem 2rem;
+  padding-top: clamp(1.25rem, 3vw, 1.75rem);
+  border-top: 1px solid rgb(40 36 32 / 0.14);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45);
+}
+.featured-foot .talk { margin-top: 0; }
+.featured-foot .talk-thumb { width: 11rem; }
+@media (max-width: 640px) { .featured-foot .talk-thumb { width: 8.5rem; } }
+
+/* YouTube video sized to its own shape (e.g. vertical 9:16), so the player shows no black bars */
+.yt-frame.yt-tall { width: min(100%, 22rem); margin-inline: auto; }
+.yt-well { aspect-ratio: var(--yt-aspect, 16 / 9); }
+.yt-well > iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+/* per-project texture laid over the glass tint (bolts only, transparent background) */
+.slab.glass-slab.has-tex {
+  background-image:
+    var(--tex),
+    linear-gradient(135deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0.04) 45%, rgb(255 255 255 / 0) 60%, rgb(255 255 255 / 0.08));
+  background-size: cover, auto;
+  background-position: center, 0 0;
+}
+
+/* La D0minatrix: electric light-blue edge around the video */
+.has-tex .yt-frame {
+  background-color: #8fe3ff;
+  background-image: linear-gradient(135deg, rgb(255 255 255 / 0.55), rgb(255 255 255 / 0) 45%, rgb(80 190 255 / 0.35));
+  box-shadow:
+    inset 1px 1px 0 rgb(255 255 255 / 0.9),
+    inset -1px -1px 0 rgb(40 150 220 / 0.6),
+    0 0 6px rgb(120 220 255 / 0.9),
+    0 0 18px rgb(80 200 255 / 0.65),
+    0 0 42px rgb(60 170 255 / 0.4);
+}
+
+/* Game Dev blocks: pixel-art pour in shades of orange (seamless tile, 12px pixels) */
+[data-cat='gamedev'] .slab.glass-slab {
+  background-image:
+    url('../assets/textures/pixels-orange.png'),
+    linear-gradient(135deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0.04) 45%, rgb(255 255 255 / 0) 60%, rgb(255 255 255 / 0.08));
+  background-size: 384px 384px, auto;
+  background-position: var(--ox, 0) var(--oy, 0), 0 0; /* each block starts at a different spot in the tile */
+}
+
+/* round icon pinned over the image's top-right corner */
+.badge {
+  position: absolute; top: -1.1rem; right: -1.1rem; z-index: 2;
+  width: 3.6rem; height: 3.6rem; padding: 0.55rem; border-radius: 50%;
+  background: color-mix(in srgb, var(--slab) 55%, #fff);
+  border: 1px solid rgb(255 255 255 / 0.7);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 3px 5px 0 rgb(55 51 47 / 0.3), 0 8px 16px -6px rgb(30 30 40 / 0.4);
+}
+@media (max-width: 640px) { .badge { width: 3rem; height: 3rem; padding: 0.45rem; top: -0.8rem; right: -0.6rem; } }

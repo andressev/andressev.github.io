@@ -1,0 +1,175 @@
+---
+import type { Project } from '../data/projects';
+interface Props { project: Project; first?: boolean; index?: number; attached?: boolean }
+const { project: p, first = false, index = 0, attached = false } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const url = (src: string) => (/^https?:\/\//.test(src) ? src : `${base}${src}`);
+const imgSrc = p.remoteImage ?? (p.image ? url(p.image) : undefined);
+const seed = p.title.length * 37;
+// vertical videos (e.g. 9 / 16) get a narrower column so they don't tower over the text
+const [aw, ah] = (p.youtube?.aspect ?? '16 / 9').split('/').map(Number);
+const ytTall = ah > aw;
+---
+<article
+  class:list={['slab concrete glass-slab slab-pad', index % 2 ? 'tone-b' : 'tone-a', p.texture && 'has-tex']}
+  style={`--ox:${seed % 280}px;--oy:${(seed * 3) % 260}px;${attached ? 'border-top-left-radius:0;' : ''}${p.texture ? `--tex:url(${url(p.texture)})` : ''}`}
+>
+  {p.featured ? (
+    <div class="grid gap-8 md:gap-10">
+      <div class="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-12 md:items-center">
+        <div class="min-w-0">
+          <p class="eyebrow">{p.kind}</p>
+          <h3 class="heading mt-3 text-[1.8rem] sm:text-[2.3rem]">{p.title}</h3>
+          {[p.description].flat().map((d) => <p class="mt-4 max-w-[68ch] text-[1rem] leading-relaxed text-[var(--ink-soft)]">{d}</p>)}
+        </div>
+        <div class="frame concrete min-w-0" style={`--ox:${(seed * 7) % 300}px;--oy:${(seed * 5) % 300}px`}>
+          <div class="well featured-well">
+            {imgSrc && <img src={imgSrc} alt={p.title} loading={first ? 'eager' : 'lazy'} decoding="async" />}
+          </div>
+        </div>
+      </div>
+      <div class="featured-foot">
+        {/* Learn more + links stay together on the left; the talk sits on the right */}
+        <div class="flex flex-wrap gap-3">
+          {p.more && (
+            <button
+              type="button"
+              class="btn concrete more-toggle"
+              aria-expanded="false"
+              aria-controls={`more-${seed}`}
+            ><span class="more-closed">Learn more</span><span class="more-open">Show less</span> <span class="more-arrow" aria-hidden="true">↓</span></button>
+          )}
+          {p.links?.map((l) => (
+            <a class="btn concrete" href={url(l.href)} target="_blank" rel="noopener noreferrer">{l.label} <span aria-hidden="true">→</span></a>
+          ))}
+        </div>
+        {p.talk && (
+          <a class="talk" href={p.talk.href} target="_blank" rel="noopener noreferrer">
+            <span class="talk-thumb">
+              <img src={p.talk.thumb} alt="" loading="lazy" decoding="async" width="320" height="180" />
+              <span class="talk-play" aria-hidden="true"></span>
+            </span>
+            <span class="talk-text">
+              <span class="talk-label">{p.talk.label} <span aria-hidden="true">↗</span></span>
+              {p.talk.note && <span class="eyebrow">{p.talk.note}</span>}
+            </span>
+          </a>
+        )}
+      </div>
+    </div>
+  ) : (
+  <div class="grid gap-8 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] md:items-center md:gap-12">
+    <div class="order-2 md:order-1 min-w-0">
+      <p class="eyebrow">{p.kind}</p>
+      <h3 class="heading mt-3 text-[1.6rem] sm:text-[1.85rem]">{p.title}</h3>
+      {[p.description].flat().map((d) => <p class="mt-4 max-w-prose text-[0.95rem] leading-relaxed text-[var(--ink-soft)]">{d}</p>)}
+      {p.links && (
+        <div class="mt-6 flex flex-wrap gap-3">
+          {p.links.map((l) => (
+            <a class="btn concrete" href={url(l.href)} target="_blank" rel="noopener noreferrer">{l.label} <span aria-hidden="true">→</span></a>
+          ))}
+        </div>
+      )}
+      {p.talk && (
+        <a class="talk" href={p.talk.href} target="_blank" rel="noopener noreferrer">
+          <span class="talk-thumb">
+            <img src={p.talk.thumb} alt="" loading="lazy" decoding="async" width="320" height="180" />
+            <span class="talk-play" aria-hidden="true"></span>
+          </span>
+          <span class="talk-text">
+            <span class="talk-label">{p.talk.label} <span aria-hidden="true">↗</span></span>
+            {p.talk.note && <span class="eyebrow">{p.talk.note}</span>}
+          </span>
+        </a>
+      )}
+      {p.more && (
+        <button
+          type="button"
+          class="btn concrete mt-6 more-toggle"
+          aria-expanded="false"
+          aria-controls={`more-${seed}`}
+        ><span class="more-closed">Learn more</span><span class="more-open">Show less</span> <span class="more-arrow" aria-hidden="true">↓</span></button>
+      )}
+    </div>
+
+    <div class="order-1 md:order-2 min-w-0">
+      {p.youtube ? (
+        <div class:list={['frame concrete yt-frame relative', ytTall && 'yt-tall']} style={`--ox:${(seed * 7) % 300}px;--oy:${(seed * 5) % 300}px;--yt-aspect:${p.youtube.aspect ?? '16 / 9'}`}>
+          {p.badge && <img class="badge" src={url(p.badge.src)} alt={p.badge.label} width="64" height="64" />}
+          {/* YouTube's own player, so a single tap plays it. Sized to the video's own shape so no black bars show */}
+          <div class="well yt-well">
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${p.youtube.id}?playsinline=1&rel=0`}
+              title={p.title}
+              loading="lazy"
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen
+            ></iframe>
+          </div>
+        </div>
+      ) : (
+      <div class="frame concrete relative" style={`--ox:${(seed * 7) % 300}px;--oy:${(seed * 5) % 300}px`}>
+        {p.badge && <img class="badge" src={url(p.badge.src)} alt={p.badge.label} width="64" height="64" />}
+        <div class="well">
+          {p.video ? (
+            <video data-src={url(p.video)} poster={imgSrc} muted loop playsinline preload="none" aria-label={p.title}></video>
+          ) : imgSrc ? (
+            <img src={imgSrc} alt={p.title} loading={first ? 'eager' : 'lazy'} decoding="async" />
+          ) : null}
+        </div>
+      </div>
+      )}
+      {p.extra?.map((e) => (
+        <figure class="mt-6">
+          <div class="frame concrete">
+            <div class="well"><img src={url(e.src)} alt={e.caption ?? p.title} loading="lazy" decoding="async" /></div>
+          </div>
+          {e.caption && <figcaption class="more-caption">{e.caption}</figcaption>}
+        </figure>
+      ))}
+    </div>
+  </div>
+  )}
+
+  {p.more && (
+    <div id={`more-${seed}`} class="more-panel" hidden>
+      <div class="more-text">
+        {p.more.text.map((t) => <p>{t}</p>)}
+      </div>
+      {p.more.figure && (
+        <figure class="more-figure">
+          <a href={url(p.more.figure.src)} target="_blank" rel="noopener noreferrer" class="frame concrete block">
+            <span class="well block"><img src={url(p.more.figure.src)} alt={p.more.figure.caption} loading="lazy" decoding="async" /></span>
+          </a>
+          <figcaption class="more-caption">{p.more.figure.caption}</figcaption>
+        </figure>
+      )}
+      {(p.more.after || p.more.list) && (
+        <div class="more-text more-after">
+          {p.more.after?.map((t) => <p>{t}</p>)}
+          {p.more.list && (
+            <dl class="more-list">
+              {p.more.list.map((it) => (
+                <div>
+                  <dt>{it.name}</dt>
+                  <dd>{it.text}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </div>
+      )}
+      <ul class="more-gallery">
+        {p.more.gallery.map((g) => (
+          <li>
+            <a href={url(g.full)} target="_blank" rel="noopener noreferrer" class="frame concrete block">
+              <span class="well block"><img src={url(g.src)} alt={g.caption} loading="lazy" decoding="async" /></span>
+            </a>
+            <p class="more-caption">{g.caption}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+</article>

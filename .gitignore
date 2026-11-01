@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.astro/
+.DS_Store
+DynamicalSystems Engine/
+_to_delete/
+start-site.bat

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- strap -->
+  <path d="M6 30c0-3 1.5-5 4-5h2M58 30c0-3-1.5-5-4-5h-2" stroke="#2b2236" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- visor: rounded body with a nose notch at the bottom -->
+  <path d="M14 18h36a6 6 0 0 1 6 6v14a6 6 0 0 1-6 6H40.5a3 3 0 0 1-2.6-1.5l-3.3-5.6a3 3 0 0 0-5.2 0l-3.3 5.6A3 3 0 0 1 23.5 44H14a6 6 0 0 1-6-6V24a6 6 0 0 1 6-6Z" fill="#2b2236"/>
+  <!-- lenses -->
+  <rect x="13" y="23" width="15" height="11" rx="4" fill="#cdb8ee"/>
+  <rect x="36" y="23" width="15" height="11" rx="4" fill="#cdb8ee"/>
+  <!-- glints -->
+  <path d="M16 26.5h5M39 26.5h5" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".85"/>
+</svg>
