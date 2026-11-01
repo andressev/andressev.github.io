@@ -127,7 +127,7 @@ export const projects: Project[] = [
       { label: 'App Store', href: 'https://apps.apple.com/us/app/pocket-city-2/id1533709428' },
       { label: 'Steam', href: 'https://store.steampowered.com/app/3566200/Pocket_City_2/' },
     ],
-    remoteImage: 'https://github.com/user-attachments/assets/d5c2dac6-6979-4c55-90ae-14df5ae64b75',
+    image: 'media/pocket-city.jpg',
   },
   {
     tab: 'gamedev',
@@ -138,7 +138,7 @@ export const projects: Project[] = [
       'Delivered a major update for Farmside, another large-scale Apple Arcade title. Production at this scale means every change touches thousands of users, extreme care, fast execution, and tight deadlines.',
     tags: ['Unity', 'C#', 'Apple Arcade', 'Production'],
     links: [{ label: 'Farmside', href: 'https://farmsidegame.com/' }],
-    remoteImage: 'https://github.com/user-attachments/assets/0f7c4a1b-c1e5-4a70-bebc-40ec1bd7e252',
+    image: 'media/farmside.jpg',
   },
   {
     tab: 'gamedev',
